@@ -4,6 +4,7 @@ import android.opengl.EGL14;
 import android.opengl.EGLConfig;
 import android.opengl.EGLContext;
 import android.opengl.EGLDisplay;
+import android.opengl.EGLExt;
 import android.opengl.EGLSurface;
 import android.opengl.GLES20;
 import android.view.Surface;
@@ -86,6 +87,10 @@ public class GLCore {
                 0);
     }
 
+    public void destroyEGLSurface(EGLSurface surface) {
+        EGL14.eglDestroySurface(mEGLDisplay, surface);
+    }
+
     public void makeCurrent(EGLSurface eglSurface) {
         EGL14.eglMakeCurrent(mEGLDisplay, eglSurface, eglSurface, mEGLContext);
     }
@@ -157,5 +162,9 @@ public class GLCore {
         }
 
         return mGLTextureId;
+    }
+
+    public void setPresentationTime(EGLSurface eglSurface, long nsecs) {
+        EGLExt.eglPresentationTimeANDROID(mEGLDisplay, eglSurface, nsecs);
     }
 }

@@ -33,8 +33,12 @@ public class SurfaceRender {
     }
 
     public void render(float[] transformMatrix) {
-        mGLCore.makeCurrent(mSurface);
+        render(transformMatrix, mSurface);
+    }
+
+    public void render(float[] transformMatrix, EGLSurface surface) {
+        mGLCore.makeCurrent(surface);
         mShader.draw(mGLCore, transformMatrix, mGLCore.getTexture());
-        mGLCore.swapBuffers(mSurface);
+        mGLCore.swapBuffers(surface);
     }
 }
