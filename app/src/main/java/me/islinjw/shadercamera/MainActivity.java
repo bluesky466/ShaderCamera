@@ -2,14 +2,17 @@ package me.islinjw.shadercamera;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraCharacteristics;
 import android.media.MediaRecorder;
+import android.net.Uri;
 import android.opengl.EGLSurface;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Surface;
 import android.view.TextureView;
@@ -50,9 +53,6 @@ public class MainActivity extends AppCompatActivity implements
     @Bind(R.id.record)
     CheckBox mRecord;
 
-    @Bind(R.id.switch_camera)
-    Button mSwitchCamera;
-
     private boolean mOpenCamera = false;
     private CameraCapturer mCameraCapturer;
     private SurfaceTexture mCameraTexutre;
@@ -69,6 +69,8 @@ public class MainActivity extends AppCompatActivity implements
     private EGLSurface mRecordSurface;
 
     private RxPermissions mRxPermissions = new RxPermissions(this);
+
+    private File mLastVideo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,6 +123,22 @@ public class MainActivity extends AppCompatActivity implements
 
         closeCamera();
         openCamera();
+    }
+
+    @OnClick(R.id.play_video)
+    public void playVideo() {
+        if (mLastVideo == null) {
+            Toast.makeText(this, "no video", Toast.LENGTH_LONG).show();
+        }
+
+        Uri uri = FileProvider.getUriForFile(
+                this,
+                BuildConfig.APPLICATION_ID + ".fileprovider",
+                mLastVideo);
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        intent.setDataAndType(uri, "video/*");
+        startActivity(intent);
     }
 
     @Override
@@ -244,13 +262,13 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private EGLSurface startRecord(String filename) {
-        File outputFile = new File(Environment.getExternalStorageDirectory(), filename);
+        mLastVideo = new File(Environment.getExternalStorageDirectory(), filename);
 
         mMediaRecorder = new MediaRecorder();
         mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mMediaRecorder.setOutputFile(outputFile.getPath());
+        mMediaRecorder.setOutputFile(mLastVideo.getPath());
         mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         mMediaRecorder.setVideoEncodingBitRate(VIDEO_BIT_RATE);
         mMediaRecorder.setVideoSize(mPreview.getWidth(), mPreview.getHeight());
