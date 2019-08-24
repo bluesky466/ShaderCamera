@@ -9,6 +9,7 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.TotalCaptureResult;
 import android.os.Handler;
 import android.util.Log;
 import android.util.Size;
@@ -25,6 +26,8 @@ public class CameraCapturer {
 
     private CameraDevice mCameraDevice;
     private Surface mPreviewSurface;
+
+    private CaptureListener mListener;
 
     private CameraDevice.StateCallback mOpenCameraCallback =
             new CameraDevice.StateCallback() {
@@ -55,6 +58,21 @@ public class CameraCapturer {
                 }
             };
 
+    private CameraCaptureSession.CaptureCallback mCaptureCallback =
+            new CameraCaptureSession.CaptureCallback() {
+                @Override
+                public void onCaptureCompleted(
+                        CameraCaptureSession session,
+                        CaptureRequest request,
+                        TotalCaptureResult result) {
+                    super.onCaptureCompleted(session, request, result);
+
+                    if (mListener != null) {
+                        mListener.onCaptureCompleted();
+                    }
+                }
+            };
+
     public CameraCapturer(Context context) {
         mContext = context.getApplicationContext();
     }
@@ -65,7 +83,9 @@ public class CameraCapturer {
             int facing,
             int width,
             int height,
-            Handler handler) {
+            Handler handler,
+            CaptureListener listener) {
+        mListener = listener;
         mPreviewSurface = new Surface(preview);
         mHandler = handler;
 
@@ -150,9 +170,13 @@ public class CameraCapturer {
             CaptureRequest.Builder builder = mCameraDevice.createCaptureRequest(
                     CameraDevice.TEMPLATE_PREVIEW);
             builder.addTarget(mPreviewSurface);
-            session.setRepeatingRequest(builder.build(), null, mHandler);
+            session.setRepeatingRequest(builder.build(), mCaptureCallback, mHandler);
         } catch (CameraAccessException e) {
             Log.e(TAG, "requestPreview failed", e);
         }
+    }
+
+    public interface CaptureListener {
+        void onCaptureCompleted();
     }
 }
