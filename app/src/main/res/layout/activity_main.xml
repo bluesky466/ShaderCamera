@@ -38,5 +38,6 @@
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="30dp"
         android:layout_toLeftOf="@+id/record"
-        android:background="@drawable/play_video_button_background"/>
+        android:background="@drawable/play_video_button_background"
+        android:visibility="gone"/>
 </RelativeLayout>

@@ -53,6 +53,9 @@ public class MainActivity extends AppCompatActivity implements
     @Bind(R.id.record)
     CheckBox mRecord;
 
+    @Bind(R.id.play_video)
+    Button mPlayVideo;
+
     private boolean mOpenCamera = false;
     private CameraCapturer mCameraCapturer;
     private SurfaceTexture mCameraTexutre;
@@ -127,10 +130,6 @@ public class MainActivity extends AppCompatActivity implements
 
     @OnClick(R.id.play_video)
     public void playVideo() {
-        if (mLastVideo == null) {
-            Toast.makeText(this, "no video", Toast.LENGTH_LONG).show();
-        }
-
         Uri uri = FileProvider.getUriForFile(
                 this,
                 BuildConfig.APPLICATION_ID + ".fileprovider",
@@ -288,6 +287,8 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void stopRecord() {
+        mPlayVideo.setVisibility(View.VISIBLE);
+
         mMediaRecorder.stop();
         mMediaRecorder.release();
         mMediaRecorder = null;
