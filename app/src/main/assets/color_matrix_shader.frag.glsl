@@ -5,8 +5,8 @@ precision highp float;
 varying vec2 vPreviewCoord;
 
 uniform samplerExternalOES texPreview;
-uniform mat4 uDecoloring;
+uniform mat4 uColorMatrix;
 
 void main() {
-    gl_FragColor = uDecoloring * texture2D(texPreview, vPreviewCoord).rgba;
+    gl_FragColor = uColorMatrix * texture2D(texPreview, vPreviewCoord).rgba;
 }

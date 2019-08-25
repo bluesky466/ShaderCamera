@@ -14,6 +14,8 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
@@ -25,6 +27,8 @@ import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -36,12 +40,17 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import me.islinjw.shadercamera.gl.GLCore;
-import me.islinjw.shadercamera.gl.DecolorShader;
+import me.islinjw.shadercamera.gl.shader.ColorMatrixShader;
 import me.islinjw.shadercamera.gl.SurfaceRender;
+import me.islinjw.shadercamera.gl.shader.DecolorShader;
+import me.islinjw.shadercamera.gl.shader.IShader;
+import me.islinjw.shadercamera.gl.shader.NormalShader;
+import me.islinjw.shadercamera.gl.shader.NostalgiaShader;
+import me.islinjw.shadercamera.gl.shader.ReversalShader;
 
 public class MainActivity extends AppCompatActivity implements
         TextureView.SurfaceTextureListener,
-        CameraCapturer.CaptureListener {
+        CameraCapturer.CaptureListener, ShaderAdaptor.OnSelectShaderListener {
 
     private static final int VIDEO_BIT_RATE = 1024 * 1024 * 1024;
     private static final int VIDEO_FRAME_RATE = 30;
@@ -55,6 +64,12 @@ public class MainActivity extends AppCompatActivity implements
 
     @Bind(R.id.play_video)
     Button mPlayVideo;
+
+    @Bind(R.id.shader_selector)
+    RecyclerView mShaderSelector;
+
+    @Bind(R.id.select_shader)
+    Button mSelectShader;
 
     private boolean mOpenCamera = false;
     private CameraCapturer mCameraCapturer;
@@ -85,6 +100,19 @@ public class MainActivity extends AppCompatActivity implements
 
         mPreview.setSurfaceTextureListener(this);
 
+        List<ShaderAdaptor.ShaderInfo> shaders = new ArrayList<ShaderAdaptor.ShaderInfo>() {{
+            add(new ShaderAdaptor.ShaderInfo(R.string.shader_normal, NormalShader.class));
+            add(new ShaderAdaptor.ShaderInfo(R.string.shader_decolor, DecolorShader.class));
+            add(new ShaderAdaptor.ShaderInfo(R.string.shader_reversal, ReversalShader.class));
+            add(new ShaderAdaptor.ShaderInfo(R.string.shader_nostalgia, NostalgiaShader.class));
+        }};
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(
+                this, LinearLayoutManager.HORIZONTAL, false);
+        ShaderAdaptor adaptor = new ShaderAdaptor(mShaderSelector, shaders);
+        adaptor.setOnSelectShaderListener(this);
+        mShaderSelector.setLayoutManager(layoutManager);
+        mShaderSelector.setAdapter(adaptor);
+
         mRenderThread.start();
         mRenderHandler = new Handler(mRenderThread.getLooper());
     }
@@ -98,6 +126,18 @@ public class MainActivity extends AppCompatActivity implements
                 stopRecord();
             }
         }
+    }
+
+    @OnClick(R.id.select_shader)
+    public void selectShader() {
+        mShaderSelector.setVisibility(View.VISIBLE);
+        mSelectShader.setVisibility(View.GONE);
+//        mRenderHandler.post(new Runnable() {
+//            @Override
+//            public void run() {
+//                mSurfaceRender.setShader(MainActivity.this, new ReversalShader());
+//            }
+//        });
     }
 
     private String genFileName() {
@@ -192,7 +232,7 @@ public class MainActivity extends AppCompatActivity implements
                                 surface,
                                 mPreview.getWidth(),
                                 mPreview.getHeight());
-                        mSurfaceRender.setShader(MainActivity.this, new DecolorShader());
+                        mSurfaceRender.setShader(MainActivity.this, new NormalShader());
                         mCameraTexutre = new SurfaceTexture(mGLCore.getTexture());
                         return Manifest.permission.CAMERA;
                     }
@@ -295,5 +335,17 @@ public class MainActivity extends AppCompatActivity implements
 
         mGLCore.destroyEGLSurface(mRecordSurface);
         mRecordSurface = null;
+    }
+
+    @Override
+    public void onSelectShader(final IShader shader) {
+        mShaderSelector.setVisibility(View.GONE);
+        mSelectShader.setVisibility(View.VISIBLE);
+        mRenderHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                mSurfaceRender.setShader(MainActivity.this, shader);
+            }
+        });
     }
 }

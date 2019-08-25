@@ -1,6 +1,8 @@
-package me.islinjw.shadercamera.gl;
+package me.islinjw.shadercamera.gl.shader;
 
 import android.content.Context;
+
+import me.islinjw.shadercamera.gl.GLCore;
 
 public interface IShader {
     void onAttach(Context context, GLCore core);

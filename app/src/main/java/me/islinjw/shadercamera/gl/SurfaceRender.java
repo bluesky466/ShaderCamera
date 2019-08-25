@@ -5,6 +5,8 @@ import android.opengl.EGLSurface;
 import android.opengl.GLES20;
 import android.view.Surface;
 
+import me.islinjw.shadercamera.gl.shader.IShader;
+
 public class SurfaceRender {
     private GLCore mGLCore;
     private EGLSurface mSurface;

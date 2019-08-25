@@ -1,4 +1,4 @@
-package me.islinjw.shadercamera.gl;
+package me.islinjw.shadercamera.gl.shader;
 
 import android.content.Context;
 import android.content.res.AssetManager;
@@ -10,10 +10,11 @@ import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
 import me.islinjw.shadercamera.CommonUtils;
+import me.islinjw.shadercamera.gl.GLCore;
 
-public class DecolorShader implements IShader {
-    private static final String VERTICES_SHADER = "decolor_shader.vert.glsl";
-    private static final String FRAGMENT_SHADER = "decolor_shader.frag.glsl";
+public abstract class ColorMatrixShader implements IShader {
+    private static final String VERTICES_SHADER = "color_matrix_shader.vert.glsl";
+    private static final String FRAGMENT_SHADER = "color_matrix_shader.frag.glsl";
 
     float[] VERTICES = {
             -1.0f, 1.0f,
@@ -34,13 +35,6 @@ public class DecolorShader implements IShader {
             2, 3, 0
     };
 
-    private float[] DECOLORING = {
-            0.299f, 0.587f, 0.114f, 0.0f,
-            0.299f, 0.587f, 0.114f, 0.0f,
-            0.299f, 0.587f, 0.114f, 0.0f,
-            0.0f, 0.0f, 0.0f, 1.0f
-    };
-
     private int mProgram;
 
     private FloatBuffer mVertices;
@@ -51,7 +45,7 @@ public class DecolorShader implements IShader {
     private int mCoordId;
     private int mTexPreviewId;
     private int mTransformMatrixId;
-    private int mDecoloringId;
+    private int mColorMatrixId;
 
     @Override
     public void onAttach(Context context, GLCore core) {
@@ -69,7 +63,7 @@ public class DecolorShader implements IShader {
         mOrder = CommonUtils.toShortBuffer(ORDERS);
         mPositionId = GLES20.glGetAttribLocation(mProgram, "vPosition");
         mCoordId = GLES20.glGetAttribLocation(mProgram, "vCoord");
-        mDecoloringId = GLES20.glGetUniformLocation(mProgram, "uDecoloring");
+        mColorMatrixId = GLES20.glGetUniformLocation(mProgram, "uColorMatrix");
         mTexPreviewId = GLES20.glGetUniformLocation(mProgram, "texPreview");
         mTransformMatrixId = GLES20.glGetUniformLocation(mProgram, "matTransform");
     }
@@ -77,6 +71,7 @@ public class DecolorShader implements IShader {
     @Override
     public void onDetach(Context context, GLCore core) {
         core.deleteProgram(mProgram);
+        mProgram = -1;
     }
 
     @Override
@@ -91,10 +86,12 @@ public class DecolorShader implements IShader {
         GLES20.glVertexAttribPointer(mCoordId, 2, GLES20.GL_FLOAT, false, 0, mCoords);
         GLES20.glEnableVertexAttribArray(mCoordId);
 
-        GLES20.glUniformMatrix4fv(mDecoloringId, 1, true, DECOLORING, 0);
+        GLES20.glUniformMatrix4fv(mColorMatrixId, 1, true, getColorMatrix(), 0);
         GLES20.glUniformMatrix4fv(mTransformMatrixId, 1, false, transformMatrix, 0);
 
         GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, ORDERS.length, GLES20.GL_UNSIGNED_SHORT, mOrder);
     }
+
+    protected abstract float[] getColorMatrix();
 }
