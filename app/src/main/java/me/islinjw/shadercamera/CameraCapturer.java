@@ -95,10 +95,11 @@ public class CameraCapturer {
             for (String id : manager.getCameraIdList()) {
                 CameraCharacteristics cc = manager.getCameraCharacteristics(id);
                 if (cc.get(CameraCharacteristics.LENS_FACING) == facing) {
-                    manager.openCamera(id, mOpenCameraCallback, handler);
                     Size[] sizes = cc.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
                             .getOutputSizes(SurfaceTexture.class);
-                    setMostSuitableSize(preview, sizes, width, height);
+                    Size size = getMostSuitableSize(sizes, width, height);
+                    preview.setDefaultBufferSize(size.getWidth(), size.getHeight());
+                    manager.openCamera(id, mOpenCameraCallback, handler);
                     break;
                 }
             }
@@ -114,8 +115,7 @@ public class CameraCapturer {
         }
     }
 
-    private void setMostSuitableSize(
-            SurfaceTexture surfacePreview,
+    private Size getMostSuitableSize(
             Size[] sizes,
             float width,
             float height) {
@@ -127,11 +127,7 @@ public class CameraCapturer {
                 result = size;
             }
         }
-        if (result == null) {
-            return;
-        }
-
-        surfacePreview.setDefaultBufferSize(result.getWidth(), result.getHeight());
+        return result;
     }
 
     private boolean isMoreSuitable(Size current, Size target, float targetRatio) {

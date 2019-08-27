@@ -132,12 +132,6 @@ public class MainActivity extends AppCompatActivity implements
     public void selectShader() {
         mShaderSelector.setVisibility(View.VISIBLE);
         mSelectShader.setVisibility(View.GONE);
-//        mRenderHandler.post(new Runnable() {
-//            @Override
-//            public void run() {
-//                mSurfaceRender.setShader(MainActivity.this, new ReversalShader());
-//            }
-//        });
     }
 
     private String genFileName() {
@@ -151,6 +145,7 @@ public class MainActivity extends AppCompatActivity implements
                     @Override
                     public void accept(Boolean granted) {
                         if (granted) {
+                            mRecord.setChecked(true);
                             mRecordSurface = startRecord(genFileName());
                         } else {
                             mRecord.setChecked(false);
