@@ -17,6 +17,7 @@ public class ShaderAdaptor extends RecyclerView.Adapter<ShaderAdaptor.Holder> im
     private RecyclerView mRecyclerView;
     private List<ShaderInfo> mShaders;
     private OnSelectShaderListener mListener;
+    private int mSelectPosition = 0;
 
     public ShaderAdaptor(RecyclerView recyclerView, List<ShaderInfo> shaders) {
         mRecyclerView = recyclerView;
@@ -33,8 +34,10 @@ public class ShaderAdaptor extends RecyclerView.Adapter<ShaderAdaptor.Holder> im
     }
 
     @Override
-    public void onBindViewHolder(@NonNull Holder holder, int i) {
-        holder.mShaderName.setText(mShaders.get(i).getName());
+    public void onBindViewHolder(@NonNull Holder holder, int position) {
+        holder.mShaderName.setText(mShaders.get(position).getName());
+        holder.itemView.setSelected(mSelectPosition == position);
+
     }
 
     @Override
@@ -48,6 +51,14 @@ public class ShaderAdaptor extends RecyclerView.Adapter<ShaderAdaptor.Holder> im
 
     @Override
     public void onClick(View v) {
+        int newSelect = mRecyclerView.getChildAdapterPosition(v);
+        if (mSelectPosition != newSelect) {
+            int oldSelect = mSelectPosition;
+            mSelectPosition = newSelect;
+            notifyItemChanged(oldSelect);
+            notifyItemChanged(newSelect);
+        }
+
         if (mListener != null) {
             ShaderInfo shaderInfo = mShaders.get(mRecyclerView.getChildAdapterPosition(v));
             mListener.onSelectShader(shaderInfo.getShader());

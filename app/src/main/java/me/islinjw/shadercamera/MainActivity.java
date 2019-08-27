@@ -16,6 +16,7 @@ import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
@@ -40,7 +41,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import me.islinjw.shadercamera.gl.GLCore;
-import me.islinjw.shadercamera.gl.shader.ColorMatrixShader;
 import me.islinjw.shadercamera.gl.SurfaceRender;
 import me.islinjw.shadercamera.gl.shader.DecolorShader;
 import me.islinjw.shadercamera.gl.shader.IShader;
@@ -334,13 +334,31 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onSelectShader(final IShader shader) {
-        mShaderSelector.setVisibility(View.GONE);
-        mSelectShader.setVisibility(View.VISIBLE);
         mRenderHandler.post(new Runnable() {
             @Override
             public void run() {
                 mSurfaceRender.setShader(MainActivity.this, shader);
             }
         });
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (mShaderSelector.getVisibility() == View.VISIBLE
+                && event.getAction() == MotionEvent.ACTION_UP) {
+            mShaderSelector.setVisibility(View.GONE);
+            mSelectShader.setVisibility(View.VISIBLE);
+        }
+        return super.onTouchEvent(event);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mShaderSelector.getVisibility() == View.VISIBLE) {
+            mShaderSelector.setVisibility(View.GONE);
+            mSelectShader.setVisibility(View.VISIBLE);
+        } else {
+            super.onBackPressed();
+        }
     }
 }
